@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Маяк Armstrong (PWA)</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    label { display: block; margin-top: 10px; }
+    input, select, button { padding: 10px; margin-top: 5px; width: 100%; max-width: 300px; }
+    button { cursor: pointer; }
+    .result { margin-top: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 8px; background: #f9f9f9; }
+  </style>
+</head>
+<body>
+  <h2>Калькулятор Маяк Armstrong</h2>
+  <label>Довжина кімнати (м): <input type="number" id="length" step="0.1"></label>
+  <label>Ширина кімнати (м): <input type="number" id="width" step="0.1"></label>
+
+  <label>Норма підвісів (шт/м²):
+    <select id="hangersNorm">
+      <option value="1.0">1.0 (економ)</option>
+      <option value="1.33" selected>1.33 (стандарт)</option>
+      <option value="2.0">2.0 (з запасом)</option>
+    </select>
+  </label>
+
+  <label>Запас матеріалів:
+    <select id="reserve">
+      <option value="0">0% (без запасу)</option>
+      <option value="0.05">5%</option>
+      <option value="0.10">10%</option>
+    </select>
+  </label>
+
+  <button onclick="calculate()">Розрахувати</button>
+
+  <div id="output" class="result" style="display:none;"></div>
+
+  <script>
+    function calculate() {
+      let L = parseFloat(document.getElementById('length').value);
+      let W = parseFloat(document.getElementById('width').value);
+      if (isNaN(L) || isNaN(W) || L <= 0 || W <= 0) {
+        alert("Введіть коректні значення!");
+        return;
+      }
+
+      let S = L * W;
+      let hangersNorm = parseFloat(document.getElementById('hangersNorm').value);
+      let reserve = parseFloat(document.getElementById('reserve').value);
+
+      let tiles = S / 0.36;
+      let mainRunners = (L / 1.2) * (W / 3.6);
+      let cross120 = S * 1.38;
+      let cross60 = S * 0.7;
+      let perimeter = 2 * (L + W);
+      let wallAngle = perimeter / 3;
+      let hangers = S * hangersNorm;
+
+      tiles *= (1 + reserve);
+      mainRunners *= (1 + reserve);
+      cross120 *= (1 + reserve);
+      cross60 *= (1 + reserve);
+      wallAngle *= (1 + reserve);
+      hangers *= (1 + reserve);
+
+      tiles = Math.ceil(tiles);
+      mainRunners = Math.ceil(mainRunners);
+      cross120 = Math.ceil(cross120);
+      cross60 = Math.ceil(cross60);
+      wallAngle = Math.ceil(wallAngle);
+      hangers = Math.ceil(hangers);
+
+      document.getElementById('output').style.display = 'block';
+      document.getElementById('output').innerHTML = `
+        <b>Розрахунок для кімнати ${L} × ${W} м (${S.toFixed(2)} м²):</b><br>
+        • Плити: ${tiles} шт.<br>
+        • Основні напрямні (3.6 м): ${mainRunners} шт.<br>
+        • Поперечні напрямні 1.2 м: ${cross120} шт.<br>
+        • Поперечні напрямні 0.6 м: ${cross60} шт.<br>
+        • Кутовий профіль (3 м): ${wallAngle} шт.<br>
+        • Підвіси: ${hangers} шт.
+      `;
+    }
+
+    // Додати PWA можливість
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+        .then(() => console.log('Service Worker зареєстровано'))
+        .catch((err) => console.log('Помилка Service Worker:', err));
+    }
+  </script>
+</body>
+</html>
